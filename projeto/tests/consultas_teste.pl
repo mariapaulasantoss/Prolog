@@ -103,6 +103,11 @@ caso('C3: enumera multiplas trilhas diferentes para o mesmo aluno',
        length(Ts, 5),
        sort(Ts, Distintas), length(Distintas, 5) )).
 
+caso('C3: findall enumera TODAS as trilhas de beatriz em 1 semestre (4 trilhas)',
+     ( findall(T, trilha_valida(beatriz, 28, 1, T), Ts),
+       length(Ts, 4),
+       sort(Ts, Distintas), length(Distintas, 4) )).
+
 caso('C3: limite apertado demais falha rapido (nao trava)',
      \+ trilha_valida(lucas, 12, _)).
 

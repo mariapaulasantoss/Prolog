@@ -106,6 +106,7 @@ aluno(sophia).
 aluno(pedro).
 aluno(vitor).
 aluno(lucas).   % calouro: cadastrado, mas sem nenhum cursou/2
+aluno(beatriz). % formanda: so falta o ultimo periodo
 
 % Historicos
 % Sophia - Adiantado - 4° Semestre e cursando disciplinas do 5°
@@ -199,4 +200,47 @@ cursou(vitor, sistemas_operacionais_ciber).
 cursou(vitor, redes_convergentes).
 cursou(vitor, modelagem_sistemas_computacionais).
 
-
+% Beatriz - Formanda - cursou do 1o ao 7o periodo e uma eletiva de 2 creditos;
+% faltam o 8o periodo e 4 creditos de eletiva
+cursou(beatriz, fundamentos_de_sistemas_ciberfisicos).
+cursou(beatriz, resolucao_problemas_com_log_matematica).
+cursou(beatriz, filosofia).
+cursou(beatriz, ex_criativa_navegando_computacao).
+cursou(beatriz, raciocinio_algoritmo).
+cursou(beatriz, resolucao_problemas_de_natureza_discreta).
+cursou(beatriz, arq_banco_dados).
+cursou(beatriz, programacao_imperativa).
+cursou(beatriz, programacao_web).
+cursou(beatriz, conect_sistemas_ciber).
+cursou(beatriz, etica).
+cursou(beatriz, modelagem_fenomenos_fisicos).
+cursou(beatriz, ex_criando_solucoes_comp).
+cursou(beatriz, poo).
+cursou(beatriz, seguranca_da_informacao).
+cursou(beatriz, performance_sistema_ciber).
+cursou(beatriz, clinica_tic).
+cursou(beatriz, teologia_sociedade).
+cursou(beatriz, resolucao_problemas_estruturado_computacao).
+cursou(beatriz, big_data).
+cursou(beatriz, programacao_logica_funcional).
+cursou(beatriz, sistemas_operacionais_ciber).
+cursou(beatriz, redes_convergentes).
+cursou(beatriz, modelagem_sistemas_computacionais).
+cursou(beatriz, complexidade_de_algoritmos).
+cursou(beatriz, metodos_quantitativos).
+cursou(beatriz, resolucao_problemas_com_grafos).
+cursou(beatriz, metodo_pesquisa_cientifica).
+cursou(beatriz, ex_inovando_colaborativamente).
+cursou(beatriz, aprendizagem_maquina).
+cursou(beatriz, inteligencia_artificial).
+cursou(beatriz, programacao_distribuida).
+cursou(beatriz, gestao_projetos_metodos_ageis).
+cursou(beatriz, pesquisa_aplicada).
+cursou(beatriz, engenharia_software).
+cursou(beatriz, construcao_interpretadores).
+cursou(beatriz, data_science).
+cursou(beatriz, construcao_software_grafico_3d).
+cursou(beatriz, cloud_computing).
+cursou(beatriz, arq_software).
+cursou(beatriz, ex_projeto_transformador1).
+cursou(beatriz, algoritmos_probabilistico).

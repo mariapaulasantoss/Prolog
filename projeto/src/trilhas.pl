@@ -79,9 +79,18 @@ base_sem_ciclos :-
 % disciplinas. O historico simulado e passado como argumento (lista),
 % sem assert/retract, para o backtracking desfazer tudo sozinho.
 trilha_valida(Aluno, MaxCreditos, Trilha) :-
-    entrada_trilha_ok(Aluno, MaxCreditos),
-    findall(D, cursou(Aluno, D), Historico),
     max_semestres(Limite),
+    trilha_valida(Aluno, MaxCreditos, Limite, Trilha).
+
+% Mesma coisa, mas com o numero maximo de semestres escolhido por quem
+% chama (nunca acima de max_semestres/1). Serve para enumerar TODAS as
+% trilhas com findall/3 num espaco pequeno, ex.: formandos em ate 2 semestres.
+trilha_valida(Aluno, MaxCreditos, MaxSemestres, Trilha) :-
+    entrada_trilha_ok(Aluno, MaxCreditos),
+    max_semestres(Teto),
+    integer(MaxSemestres), MaxSemestres >= 0,
+    Limite is min(MaxSemestres, Teto),
+    findall(D, cursou(Aluno, D), Historico),
     planejar(Historico, MaxCreditos, Limite, Trilha).
 
 % Ate N trilhas diferentes para o mesmo aluno. Pedir "todas" nao e

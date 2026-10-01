@@ -1,54 +1,59 @@
-# Decisões de modelagem e limitações conhecidas
+# Decisões de modelagem e limitações
 
-## Camada 1 — Fatos
+## Camada 1 (fatos)
 
-- **Grade real do curso de BCC (PUCPR).** São 47 obrigatórias, distribuídas do 1º ao 8º período, e 5 eletivas.
-- **Um fato `prerequisito/2` por par**, e nunca uma lista dentro de um fato. Assim a recursão e o `forall/2` trabalham direto sobre os fatos.
-- **Átomos, e não strings.** Todos os nomes são átomos em minúsculas com `_`. Não usamos texto entre aspas duplas.
-- **`aluno/1` separado de `cursou/2`.** Antes, o aluno só era considerado válido se tivesse pelo menos um `cursou/2`. Com isso, um calouro sem histórico era tratado como inexistente. Agora `aluno/1` diz quem existe e `cursou/2` diz o que cada um fez. O aluno `lucas` é o calouro usado nos testes de "aluno sem histórico".
-- **Perfis de teste:**
-  - `sophia`: adiantada, já cursou disciplinas do 5º período.
-  - `pedro`: ritmo normal, terminou o 4º período.
-  - `vitor`: atrasado, tem pendências do 2º e do 3º períodos.
-  - `lucas`: calouro, sem histórico.
-- **Cadeias de pré-requisito longas.** A mais longa tem profundidade 5: `processamento_linguagem_natural → aprendizagem_maquina → inteligencia_artificial → complexidade_de_algoritmos → poo → programacao_imperativa`. Há outras com profundidade 3 ou 4, como os Experienciais e a cadeia SO/distribuída.
+- Usamos a grade real de BCC da PUCPR: 47 obrigatórias, do 1º ao 8º período, e 5 eletivas.
+- Cada pré-requisito é um fato `prerequisito/2` separado. Não colocamos listas dentro dos fatos porque assim fica mais fácil fazer a recursão.
+- Os nomes das disciplinas são átomos, com letras minúsculas e `_`. Não usamos aspas duplas.
+- Criamos o fato `aluno/1`. No começo, o aluno só existia se tivesse algum `cursou/2`, e por isso um calouro aparecia como aluno inexistente.
+- Alunos de teste:
+  - sophia (adiantada);
+  - pedro (no ritmo normal);
+  - vitor (atrasado);
+  - lucas (calouro, sem histórico);
+  - beatriz (formanda, só falta o 8º período).
+- A cadeia de pré-requisitos mais longa tem 5 níveis: PLN → aprendizagem de máquina → IA → complexidade → POO → programação imperativa.
 
-## Camada 2 — Elegibilidade
+## Camada 2 (regras)
 
-- **`\+` só com argumentos instanciados.** Em `pode_cursar/2`, o aluno e a disciplina já estão ligados (por `aluno_valido/1` e `disciplina/4`) antes do `\+ cursou(...)`. Isso evita a armadilha da negação por falha com variável livre.
-- **`prerequisitos_ok/2` confere se a disciplina existe.** Sem essa checagem, o `forall/2` seria verdadeiro "por vacuidade" para uma disciplina inexistente, já que ela não tem nenhum pré-requisito cadastrado.
-- **`findall/3` em vez de `setof/3` nas listas da Camada 2.** Cada disciplina aparece uma única vez em `disciplina/4`, então não há duplicatas para remover. Além disso, `findall` devolve `[]` quando não há resultado, e é isso que queremos (por exemplo, um aluno sem nenhuma disciplina liberada). Já `setof` falharia nesse caso. A ordem da lista segue a ordem da grade.
-- **`setof/3` em `ancestrais/2` (Camada 3).** Ali pode haver duplicata, porque dois caminhos diferentes podem levar ao mesmo ancestral. Por isso usamos `setof`, junto com um `-> ; L = []` para tratar o caso vazio.
+- No `pode_cursar/2`, primeiro descobrimos quem é o aluno e qual é a disciplina, e só depois usamos `\+ cursou(...)`. Fizemos assim porque o `\+` não funciona direito com variável livre.
+- No `prerequisitos_ok/2`, verificamos se a disciplina existe. Sem isso, o `forall` dava verdadeiro para uma disciplina inventada, porque ela não tem nenhum pré-requisito cadastrado.
+- Usamos `findall` nas listas, e não `setof`, por dois motivos:
+  - cada disciplina aparece uma vez só na base, então não tem repetição para tirar;
+  - o `findall` devolve lista vazia quando não acha nada, enquanto o `setof` (e o `bagof`) falham.
+- No `ancestrais/2`, da Camada 3, usamos `setof`, porque ali a mesma disciplina pode aparecer por dois caminhos diferentes.
 
-## Camada 3 — Fecho transitivo e trilhas
+## Camada 3 (fecho transitivo e trilhas)
 
-- **`prerequisito_transitivo/2`** tem caso base (pré-requisito direto) e caso recursivo. A recursão carrega uma lista de visitados, então uma base com ciclo não vira loop infinito: cada caminho tem tamanho finito.
-- **`existe_ciclo/1`** testa `prerequisito_transitivo(D, D)`. O `once/1` evita repetir a mesma resposta. O arquivo `tests/teste_ciclo.pl` usa uma base própria com um ciclo inserido de propósito.
-- **Regra de formatura** (definida pelo grupo): cursar todas as obrigatórias e mais **90 horas de eletivas**. Como 1 crédito equivale a 15 horas (1 aula por semana em 15 semanas), 90 horas correspondem a **6 créditos de eletivas**. Os parâmetros ficam em `horas_por_credito/1` e `horas_eletivas_minimas/1` e podem ser alterados.
-- **Sem `assert/retract`.** O histórico simulado é uma lista passada como argumento. Quando o Prolog volta no backtracking, a lista volta junto, sem nenhum efeito colateral para desfazer.
-- **Limite de 12 semestres** (`max_semestres/1`). O contador decrementa a cada semestre simulado e a busca para em 0, mesmo com a base correta.
-- **Poda.** Sem poda, a busca testaria todos os subconjuntos de disciplinas em cada semestre, o que explode. Antes de montar cada semestre, verificamos duas coisas:
-  1. se os créditos que faltam cabem em `limite × semestres restantes`;
-  2. se nenhuma obrigatória pendente está no fim de uma cadeia com mais elos pendentes do que os semestres restantes.
+- O `prerequisito_transitivo/2` tem dois casos:
+  - caso base: o pré-requisito é direto;
+  - caso recursivo: é pré-requisito de um pré-requisito.
 
-  Com isso, um limite impossível (por exemplo, 12 créditos para o calouro) falha em milissegundos, em vez de travar.
-- **Ordem de escolha.** Obrigatórias vêm antes de eletivas. Entre elas, têm prioridade as que "seguram" cadeias mais longas (maior `altura`) e depois as de semestre sugerido menor. A primeira trilha encontrada é gulosa: enche cada semestre por prioridade.
-- **Eletivas.** Só entram no semestre enquanto faltam créditos de eletiva. Assim a trilha não acumula eletivas além do necessário.
-- **Semestre vazio é proibido.** Ele nunca ajuda a formar e aumentaria a busca à toa.
-- **Múltiplas trilhas.** `trilhas_validas(Aluno, Max, N, Lista)` usa `findnsols/4`, que é nativo do SWI-Prolog, para pegar as N primeiras. O número de trilhas possíveis é enorme, então pedir "todas" com `findall` não é viável. Por isso N é sempre limitado.
-- **Conferência independente.** `trilha_respeita_prerequisitos/2` revalida uma trilha pronta usando o fecho transitivo. Ela confere se todos os pré-requisitos, diretos e indiretos, de cada disciplina já estavam cursados antes daquele semestre.
+  Ele guarda uma lista das disciplinas já visitadas para não entrar em loop se a base tiver ciclo.
+- O `existe_ciclo/1` testa se uma disciplina é pré-requisito dela mesma. O teste fica em `tests/teste_ciclo.pl`, que tem uma base pequena com um ciclo colocado de propósito.
+- Regra de formatura: cursar todas as obrigatórias e 90 horas de eletivas. Como cada crédito vale 15 horas, isso dá 6 créditos de eletiva.
+- Não usamos `assert/retract`. O histórico da simulação é uma lista passada como parâmetro. Assim, quando o Prolog faz backtracking, a lista volta sozinha ao estado anterior.
+- A trilha tem no máximo 12 semestres (`max_semestres/1`).
+- Para a busca não demorar, ela abandona um caminho quando:
+  - os créditos que faltam não cabem nos semestres que sobram; ou
+  - alguma disciplina tem mais pré-requisitos pendentes em sequência do que semestres sobrando.
+- Na hora de montar o semestre, colocamos primeiro as obrigatórias que têm mais disciplinas dependendo delas, e depois as eletivas. Só colocamos eletivas até completar os 6 créditos. Semestre vazio não é permitido.
+- Para listar várias trilhas:
+  - `trilhas_validas/4` pega as N primeiras com `findnsols`, que já vem no SWI-Prolog;
+  - `trilha_valida/4` deixa escolher menos semestres, para o `findall` conseguir pegar todas. Por exemplo, a beatriz tem exatamente 4 trilhas de 1 semestre.
 
-## Uso de cut
+  Pedir todas as trilhas de 12 semestres com `findall` não dá: só para a beatriz são mais de 180 mil.
 
-- **`planejar/4`, no caso base.** Quando o aluno já está formado, a trilha termina e não se tenta adicionar mais semestres.
-- **`profundidade_pendente/3`.** Disciplina já cursada tem profundidade 0, e não se calcula mais nada.
-- **`trilhas_validas/4`.** Pega só o primeiro bloco de N soluções do `findnsols/4`.
+## Onde usamos cut
 
-## Limitações conhecidas
+- `planejar/4`: quando o aluno já se formou, a trilha termina ali.
+- `profundidade_pendente/3`: se a disciplina já foi cursada, a conta para.
+- `trilhas_validas/4`: para pegar só o primeiro grupo de respostas.
 
-- A poda é heurística. Para limites "no fio da navalha", em que a trilha mal cabe nos 12 semestres, a busca pode demorar mais antes de responder. Nos limites testados (de 4 a 28 créditos), todas as respostas saíram em menos de 0,1 s.
-- As trilhas alternativas aparecem primeiro com variações nos **últimos** semestres, porque é ali que fica o ponto de escolha mais recente do backtracking. Trilhas muito diferentes no início só aparecem depois de muitas alternativas.
-- A trilha não considera horários, oferta da disciplina em cada semestre nem co-requisitos.
-- A prioridade gulosa não garante o **menor** número de semestres possível. Ela só garante uma trilha válida dentro dos limites.
-- Não há equivalência entre currículos antigos e novos.
-- `existe_ciclo/1` só olha `prerequisito/2`. Uma disciplina citada como pré-requisito, mas não cadastrada em `disciplina/4`, não é detectada como erro de base.
+## Limitações
+
+- A primeira trilha encontrada é válida, mas nem sempre é a mais curta possível.
+- As trilhas alternativas costumam mudar só nos últimos semestres, porque é o último ponto de escolha que o backtracking desfaz primeiro.
+- O sistema não considera horários, oferta das disciplinas nem co-requisitos.
+- Não tratamos equivalência entre currículos antigos e novos.
+- Se um pré-requisito citar uma disciplina que não foi cadastrada, o sistema não avisa.
