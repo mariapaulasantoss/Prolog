@@ -1,15 +1,11 @@
 :- encoding(utf8).
 
-% =====================================================================
-% Arquivo principal - carrega as tres camadas e oferece demo/0
-% Uso:  swipl projeto/src/main.pl   e depois   ?- demo.
-% =====================================================================
+% Arquivo principal: carrega as camadas e roda demo/0
 
-:- ensure_loaded(curriculum).     % Camada 1: fatos
-:- ensure_loaded(elegibilidade).  % Camada 2: regras de elegibilidade
-:- ensure_loaded(trilhas).        % Camada 3: fecho transitivo e trilhas
+:- ensure_loaded(curriculum).
+:- ensure_loaded(elegibilidade).
+:- ensure_loaded(trilhas).
 
-% Limite de creditos por semestre usado nas demonstracoes.
 limite_demo(28).
 
 demo :-
@@ -20,7 +16,6 @@ demo :-
 titulo(Texto) :-
     format('~n===== ~w =====~n', [Texto]).
 
-% ---------------------------------------------------------------------
 demo_camada1 :-
     titulo('Camada 1 - Fatos'),
     findall(D, disciplina(D, _, _, 4), Quarto),
@@ -28,7 +23,6 @@ demo_camada1 :-
     findall(D, disciplina(D, eletiva, _, _), Eletivas),
     format('Eletivas: ~w~n', [Eletivas]).
 
-% ---------------------------------------------------------------------
 demo_camada2 :-
     titulo('Camada 2 - Elegibilidade'),
     forall(member(A, [sophia, pedro, vitor, lucas]), resumo_aluno(A)),
@@ -46,7 +40,6 @@ resumo_aluno(A) :-
     format('~n~w: ~w creditos cursados, ~w obrigatorias pendentes~n', [A, C, NP]),
     format('  liberadas: ~w~n', [L]).
 
-% ---------------------------------------------------------------------
 demo_camada3 :-
     titulo('Camada 3 - Fecho transitivo e trilhas'),
     ancestrais(processamento_linguagem_natural, Anc),

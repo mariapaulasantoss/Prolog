@@ -1,17 +1,10 @@
 :- encoding(utf8).
 
-% =====================================================================
-% Bateria de testes com resultado esperado
-% Uso:  swipl projeto/tests/consultas_teste.pl   e depois   ?- rodar_testes.
-% Cada caso/2 e um objetivo que DEVE ser verdadeiro. Se falhar ou lancar
-% excecao, o teste e marcado como FALHOU.
-% =====================================================================
+% Testes: cada caso/2 deve ser verdadeiro. Rodar com ?- rodar_testes.
 
 :- ensure_loaded('../src/main').
 
-% ---------------------------------------------------------------------
 % Camada 1
-% ---------------------------------------------------------------------
 caso('C1: disciplinas do 1o semestre sugerido',
      ( findall(D, disciplina(D, _, _, 1), L),
        L == [fundamentos_de_sistemas_ciberfisicos, resolucao_problemas_com_log_matematica,
@@ -22,9 +15,7 @@ caso('C1: requisitos minimos (20+ disciplinas, 6+ semestres, 3+ eletivas)',
        setof(S, D^T^C^disciplina(D, T, C, S), Sems), length(Sems, NS), NS >= 6,
        aggregate_all(count, disciplina(_, eletiva, _, _), NE), NE >= 3 )).
 
-% ---------------------------------------------------------------------
 % Camada 2
-% ---------------------------------------------------------------------
 caso('C2: sophia (adiantada) ja pode cursar inteligencia_artificial',
      pode_cursar(sophia, inteligencia_artificial)).
 
@@ -42,7 +33,6 @@ caso('C2: pendentes - sophia 21, pedro 23, vitor 25',
        disciplinas_pendentes(pedro, P2),  length(P2, 23),
        disciplinas_pendentes(vitor, P3),  length(P3, 25) )).
 
-% \+ cursou decide o resultado: mesma disciplina, historicos diferentes.
 caso('C2: negacao por falha - vitor nao cursou programacao_web, entao pode',
      pode_cursar(vitor, programacao_web)).
 caso('C2: negacao por falha - pedro ja cursou programacao_web, entao nao pode',
@@ -56,7 +46,6 @@ caso('C2: creditos cursados (sophia 108, pedro 100, vitor 94)',
 caso('C2: disciplina com varios pre-requisitos cumpridos parcialmente nao libera',
      \+ pode_cursar(vitor, inteligencia_artificial)).
 
-% Casos de borda
 caso('Borda: aluno sem historico (lucas) tem 0 creditos e 1o semestre liberado',
      ( creditos_cursados(lucas, 0),
        disciplinas_liberadas(lucas, L),
@@ -68,9 +57,7 @@ caso('Borda: disciplina inexistente falha sem excecao',
      ( \+ pode_cursar(sophia, disciplina_que_nao_existe),
        \+ prerequisitos_ok(sophia, disciplina_que_nao_existe) )).
 
-% ---------------------------------------------------------------------
 % Camada 3
-% ---------------------------------------------------------------------
 caso('C3: fecho transitivo na cadeia de profundidade 5 (PLN)',
      ( ancestrais(processamento_linguagem_natural, L),
        L == [aprendizagem_maquina, complexidade_de_algoritmos,
@@ -117,9 +104,7 @@ caso('C3: disciplina maior que o limite e avisada e falha',
 caso('C3: aluno inexistente na trilha falha com mensagem',
      \+ trilha_valida(fulano, 28, _)).
 
-% ---------------------------------------------------------------------
 % Executor
-% ---------------------------------------------------------------------
 rodar_testes :-
     findall(Nome-Objetivo, caso(Nome, Objetivo), Casos),
     length(Casos, Total),

@@ -1,20 +1,11 @@
 :- encoding(utf8).
 
-% =====================================================================
-% Camada 3 - Fecho transitivo e geracao de trilhas
-% Depende de: curriculum.pl (fatos) e elegibilidade.pl (aluno_valido/1)
-% =====================================================================
+% Camada 3
 
-% ---------------------------------------------------------------------
-% Parametros do curso
-% ---------------------------------------------------------------------
-
-% Rede de seguranca: nenhuma trilha simula mais que 12 semestres.
+% Limite de semestres simulados
 max_semestres(12).
 
-% Regra de formatura: todas as obrigatorias + 90 horas de eletivas.
-% Cada credito equivale a 1 aula semanal num semestre de 15 semanas,
-% ou seja, 15 horas. 90 horas = 6 creditos de eletivas.
+% Formatura: todas as obrigatórias + 90h de eletivas (1 crédito = 15h)
 horas_por_credito(15).
 horas_eletivas_minimas(90).
 
@@ -23,30 +14,18 @@ creditos_eletivas_minimos(Creditos) :-
     horas_por_credito(HorasPorCredito),
     Creditos is Horas // HorasPorCredito.
 
-% ---------------------------------------------------------------------
-% Fecho transitivo
-% ---------------------------------------------------------------------
-
-% prerequisito_transitivo(Disciplina, Ancestral)
-% Ancestral e pre-requisito direto ou indireto de Disciplina.
-% A lista de visitados impede que um ciclo na base vire loop infinito:
-% a recursao nunca expande duas vezes a mesma disciplina no mesmo caminho.
+% Pré-requisitos diretos e indiretos (Visitados evita loop em caso de ciclo)
 prerequisito_transitivo(Disciplina, Ancestral) :-
     prerequisito_transitivo(Disciplina, Ancestral, [Disciplina]).
 
-% Caso base: pre-requisito direto.
 prerequisito_transitivo(Disciplina, Ancestral, _) :-
     prerequisito(Disciplina, Ancestral).
-% Caso recursivo: pre-requisito de um pre-requisito ainda nao visitado.
 prerequisito_transitivo(Disciplina, Ancestral, Visitados) :-
     prerequisito(Disciplina, Intermediaria),
     \+ memberchk(Intermediaria, Visitados),
     prerequisito_transitivo(Intermediaria, Ancestral, [Intermediaria|Visitados]).
 
-% Todos os ancestrais de uma disciplina, sem repeticao e ordenados.
-% setof (e nao findall) porque dois caminhos diferentes podem levar ao
-% mesmo ancestral; o "-> ; L = []" trata o caso de nao haver nenhum,
-% em que setof falharia.
+% setof porque o mesmo ancestral pode aparecer por caminhos diferentes
 ancestrais(Disciplina, Lista) :-
     disciplina(Disciplina, _, _, _),
     (   setof(A, prerequisito_transitivo(Disciplina, A), Lista)
@@ -54,14 +33,7 @@ ancestrais(Disciplina, Lista) :-
     ;   Lista = []
     ).
 
-% ---------------------------------------------------------------------
-% Deteccao de ciclos
-% ---------------------------------------------------------------------
-
-% existe_ciclo(Disciplina): a disciplina e pre-requisito de si mesma.
-% Funciona com Disciplina livre (enumera as que estao em ciclo) ou
-% instanciada. once/1 evita respostas repetidas quando ha mais de um
-% caminho de volta.
+% Disciplina que é pré-requisito dela mesma
 existe_ciclo(Disciplina) :-
     setof(D, P^prerequisito(D, P), ComPrerequisito),
     member(Disciplina, ComPrerequisito),
@@ -70,21 +42,12 @@ existe_ciclo(Disciplina) :-
 base_sem_ciclos :-
     \+ existe_ciclo(_).
 
-% ---------------------------------------------------------------------
-% Geracao de trilhas
-% ---------------------------------------------------------------------
-
-% trilha_valida(Aluno, MaxCreditosPorSemestre, Trilha)
-% Trilha e uma lista de semestres; cada semestre e uma lista de
-% disciplinas. O historico simulado e passado como argumento (lista),
-% sem assert/retract, para o backtracking desfazer tudo sozinho.
+% Histórico simulado vai como lista (sem assert/retract)
 trilha_valida(Aluno, MaxCreditos, Trilha) :-
     max_semestres(Limite),
     trilha_valida(Aluno, MaxCreditos, Limite, Trilha).
 
-% Mesma coisa, mas com o numero maximo de semestres escolhido por quem
-% chama (nunca acima de max_semestres/1). Serve para enumerar TODAS as
-% trilhas com findall/3 num espaco pequeno, ex.: formandos em ate 2 semestres.
+% Versão com menos semestres, para usar findall em casos pequenos
 trilha_valida(Aluno, MaxCreditos, MaxSemestres, Trilha) :-
     entrada_trilha_ok(Aluno, MaxCreditos),
     max_semestres(Teto),
@@ -93,15 +56,13 @@ trilha_valida(Aluno, MaxCreditos, MaxSemestres, Trilha) :-
     findall(D, cursou(Aluno, D), Historico),
     planejar(Historico, MaxCreditos, Limite, Trilha).
 
-% Ate N trilhas diferentes para o mesmo aluno. Pedir "todas" nao e
-% viavel (o numero cresce de forma combinatoria), entao o numero e
-% sempre limitado. findnsols/4 e nativo do SWI-Prolog.
+% As N primeiras trilhas
 trilhas_validas(Aluno, MaxCreditos, N, Trilhas) :-
     integer(N), N > 0,
     findnsols(N, T, trilha_valida(Aluno, MaxCreditos, T), Trilhas),
     !.
 
-% Validacoes de entrada: falham com uma mensagem clara, sem excecao.
+% Falha com mensagem em vez de lançar erro
 entrada_trilha_ok(Aluno, MaxCreditos) :-
     (   var(Aluno)
     ->  aviso('informe o aluno (um atomo), nao uma variavel', []), fail
@@ -121,13 +82,11 @@ aviso(Formato, Args) :-
     format(Formato, Args),
     nl.
 
-% planejar(Historico, MaxCreditos, SemestresRestantes, Trilha)
-% Caso base: o aluno ja cumpre a regra de formatura -> trilha termina.
-% O cut impede que se continue adicionando semestres depois de formado.
+% Caso base: já formado
 planejar(Historico, _, _, []) :-
     formado(Historico),
     !.
-% Caso recursivo: monta mais um semestre e segue com o historico ampliado.
+% Monta mais um semestre e continua
 planejar(Historico, MaxCreditos, Restantes, [Semestre|Trilha]) :-
     Restantes > 0,
     ainda_viavel(Historico, MaxCreditos, Restantes),
@@ -139,7 +98,6 @@ planejar(Historico, MaxCreditos, Restantes, [Semestre|Trilha]) :-
     Restantes1 is Restantes - 1,
     planejar(NovoHistorico, MaxCreditos, Restantes1, Trilha).
 
-% Regra de formatura.
 formado(Historico) :-
     forall(disciplina(D, obrigatoria, _, _), memberchk(D, Historico)),
     creditos_eletivas(Historico, Eletivas),
@@ -150,13 +108,7 @@ creditos_eletivas(Historico, Total) :-
     findall(C, (member(D, Historico), disciplina(D, eletiva, C, _)), Cs),
     sum_list(Cs, Total).
 
-% ---------------------------------------------------------------------
-% Poda: corta cedo os ramos que nao tem como chegar a formatura
-% ---------------------------------------------------------------------
-
-% 1) Creditos: o que falta nao cabe nos semestres que sobram.
-% 2) Profundidade: alguma obrigatoria pendente esta no fim de uma cadeia
-%    com mais elos pendentes do que semestres restantes.
+% Poda: os créditos e as cadeias pendentes cabem nos semestres que sobram
 ainda_viavel(Historico, MaxCreditos, Restantes) :-
     creditos_faltando(Historico, Falta),
     Falta =< MaxCreditos * Restantes,
@@ -173,7 +125,7 @@ creditos_faltando(Historico, Falta) :-
     falta_eletivas(Historico, FaltaEletivas),
     Falta is Obrigatorias + FaltaEletivas.
 
-% Quantos semestres, no minimo, ainda sao necessarios para cursar D.
+% Mínimo de semestres para conseguir cursar D
 profundidade_pendente(D, Historico, 0) :-
     memberchk(D, Historico),
     !.
@@ -184,14 +136,7 @@ profundidade_pendente(D, Historico, P) :-
     max_list([0|Ps], Maior),
     P is Maior + 1.
 
-% ---------------------------------------------------------------------
-% Escolha das disciplinas de um semestre
-% ---------------------------------------------------------------------
-
-% Disciplinas que podem entrar no proximo semestre, em ordem de
-% prioridade: obrigatorias antes de eletivas; dentro delas, as que
-% "seguram" cadeias mais longas primeiro; depois o semestre sugerido.
-% Eletivas so entram enquanto a carga minima de eletivas nao foi atingida.
+% Disciplinas liberadas, obrigatórias primeiro
 candidatas(Historico, Ordenadas) :-
     findall(Chave-D,
             ( disciplina(D, Tipo, _, Sugerido),
@@ -203,8 +148,6 @@ candidatas(Historico, Ordenadas) :-
     keysort(Pares, ParesOrdenados),
     pairs_values(ParesOrdenados, Ordenadas).
 
-% Pre-requisitos diretos ja estao no historico simulado. Como o
-% historico so cresce com disciplinas liberadas, os indiretos tambem estao.
 liberada(D, Historico) :-
     forall(prerequisito(D, Pre), memberchk(Pre, Historico)).
 
@@ -219,20 +162,14 @@ prioridade(D, Tipo, Sugerido, p(OrdemTipo, AlturaNeg, Sugerido)) :-
     altura(D, Altura),
     AlturaNeg is -Altura.
 
-% Altura = tamanho da maior cadeia de disciplinas que dependem de D.
-% So e chamada depois de entrada_trilha_ok/2 garantir que nao ha ciclo.
+% Maior cadeia de disciplinas que dependem de D
 altura(D, Altura) :-
     findall(A1,
             ( prerequisito(Dependente, D), altura(Dependente, A0), A1 is A0 + 1 ),
             As),
     max_list([0|As], Altura).
 
-% escolher(Candidatas, CreditosLivres, FaltaEletivas, Semestre)
-% Para cada candidata: primeiro tenta incluir (se couber), depois pular.
-% A primeira resposta e "gulosa" (enche o semestre por prioridade); as
-% demais, por backtracking, geram as trilhas alternativas.
-% FaltaEletivas impede de colocar no semestre mais eletivas do que o
-% necessario para fechar a carga minima.
+% Para cada disciplina: tenta incluir, depois pular (backtracking)
 escolher([], _, _, []).
 escolher([D|Ds], Livres, FaltaEletivas, [D|Semestre]) :-
     disciplina(D, Tipo, C, _),
@@ -253,12 +190,7 @@ falta_eletivas(Historico, Falta) :-
     creditos_eletivas_minimos(Minimo),
     Falta is max(0, Minimo - Feitas).
 
-% ---------------------------------------------------------------------
-% Conferencia e exibicao
-% ---------------------------------------------------------------------
-
-% Confere uma trilha pronta usando o fecho transitivo: toda disciplina
-% vem depois de TODOS os seus pre-requisitos (diretos e indiretos).
+% Confere uma trilha pronta usando o fecho transitivo
 trilha_respeita_prerequisitos(Aluno, Trilha) :-
     findall(D, cursou(Aluno, D), Historico),
     respeita(Trilha, Historico).

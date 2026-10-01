@@ -1,12 +1,6 @@
 :- encoding(utf8).
 
-% =====================================================================
-% Teste de deteccao de ciclo - base PROPOSITALMENTE malformada
-% Uso:  swipl projeto/tests/teste_ciclo.pl   e depois   ?- rodar_teste_ciclo.
-%
-% Este arquivo NAO carrega curriculum.pl: tem sua propria base pequena,
-% com um ciclo a -> c -> b -> a, e reaproveita as regras das camadas 2 e 3.
-% =====================================================================
+% Base pequena com ciclo de propósito. Rodar com ?- rodar_teste_ciclo.
 
 :- ensure_loaded('../src/elegibilidade').
 :- ensure_loaded('../src/trilhas').
