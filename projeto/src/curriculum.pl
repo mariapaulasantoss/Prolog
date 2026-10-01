@@ -1,3 +1,5 @@
+:- encoding(utf8).
+
 % Camada 1
 
 % Definindo disciplinas com base na grade de BCC
@@ -19,14 +21,14 @@ disciplina(etica, obrigatoria, 2, 2).
 disciplina(modelagem_fenomenos_fisicos, obrigatoria, 4, 3).
 disciplina(ex_criando_solucoes_comp, obrigatoria, 6, 3).
 disciplina(poo, obrigatoria, 6, 3).
-disciplina(seguranca_da_infomacao, obrigatoria, 4, 3).
+disciplina(seguranca_da_informacao, obrigatoria, 4, 3).
 disciplina(performance_sistema_ciber, obrigatoria, 4, 3).
 disciplina(clinica_tic, obrigatoria, 2, 3).
 % Quarto Período
 disciplina(teologia_sociedade, obrigatoria, 2, 4).
 disciplina(resolucao_problemas_estruturado_computacao, obrigatoria, 4, 4).
 disciplina(big_data, obrigatoria, 4, 4).
-disciplina(progamacao_logica_funcional, obrigatoria, 4, 4).
+disciplina(programacao_logica_funcional, obrigatoria, 4, 4).
 disciplina(sistemas_operacionais_ciber, obrigatoria, 4, 4).
 disciplina(redes_convergentes, obrigatoria, 4, 4).
 disciplina(modelagem_sistemas_computacionais, obrigatoria, 4, 4).
@@ -44,7 +46,7 @@ disciplina(gestao_projetos_metodos_ageis, obrigatoria, 6, 6).
 disciplina(pesquisa_aplicada, obrigatoria, 4, 6).
 disciplina(engenharia_software, obrigatoria,4, 6).
 % Sétimo Período
-disciplina(contrucao_interpretadores, obrigatoria, 4,7).
+disciplina(construcao_interpretadores, obrigatoria, 4,7).
 disciplina(data_science, obrigatoria, 6, 7).
 disciplina(construcao_software_grafico_3d, obrigatoria, 4, 7).
 disciplina(cloud_computing, obrigatoria, 4, 7).
@@ -80,8 +82,8 @@ prerequisito(programacao_distribuida, sistemas_operacionais_ciber).
 prerequisito(redes_convergentes, conect_sistemas_ciber).
 prerequisito(cloud_computing, redes_convergentes).
 
-prerequisito(seguranca_da_infomacao, conect_sistemas_ciber).
-prerequisito(computacao_forense, seguranca_da_infomacao).
+prerequisito(seguranca_da_informacao, conect_sistemas_ciber).
+prerequisito(computacao_forense, seguranca_da_informacao).
 
 prerequisito(engenharia_software, ex_criando_solucoes_comp).
 prerequisito(arq_software, engenharia_software).
@@ -97,7 +99,15 @@ prerequisito(ex_projeto_transformador1, ex_inovando_colaborativamente).
 prerequisito(ex_projeto_transformador2, ex_projeto_transformador1).
 
 
-% Alunos
+% Alunos cadastrados
+% aluno/1 separa "aluno existe" de "aluno tem historico": assim um calouro
+% sem nenhuma disciplina cursada continua sendo um aluno valido.
+aluno(sophia).
+aluno(pedro).
+aluno(vitor).
+aluno(lucas).   % calouro: cadastrado, mas sem nenhum cursou/2
+
+% Historicos
 % Sophia - Adiantado - 4° Semestre e cursando disciplinas do 5°
 %1
 cursou(sophia, fundamentos_de_sistemas_ciberfisicos).
@@ -116,14 +126,14 @@ cursou(sophia, etica).
 cursou(sophia, modelagem_fenomenos_fisicos).
 cursou(sophia, ex_criando_solucoes_comp).
 cursou(sophia, poo).
-cursou(sophia, seguranca_da_infomacao).
+cursou(sophia, seguranca_da_informacao).
 cursou(sophia, performance_sistema_ciber).
 cursou(sophia, clinica_tic).
 %4
 cursou(sophia, teologia_sociedade).
 cursou(sophia, resolucao_problemas_estruturado_computacao).
 cursou(sophia, big_data).
-cursou(sophia, progamacao_logica_funcional).
+cursou(sophia, programacao_logica_funcional).
 cursou(sophia, sistemas_operacionais_ciber).
 cursou(sophia, redes_convergentes).
 cursou(sophia, modelagem_sistemas_computacionais).
@@ -149,14 +159,14 @@ cursou(pedro, etica).
 cursou(pedro, modelagem_fenomenos_fisicos).
 cursou(pedro, ex_criando_solucoes_comp).
 cursou(pedro, poo).
-cursou(pedro, seguranca_da_infomacao).
+cursou(pedro, seguranca_da_informacao).
 cursou(pedro, performance_sistema_ciber).
 cursou(pedro, clinica_tic).
 %4
 cursou(pedro, teologia_sociedade).
 cursou(pedro, resolucao_problemas_estruturado_computacao).
 cursou(pedro, big_data).
-cursou(pedro, progamacao_logica_funcional).
+cursou(pedro, programacao_logica_funcional).
 cursou(pedro, sistemas_operacionais_ciber).
 cursou(pedro, redes_convergentes).
 cursou(pedro, modelagem_sistemas_computacionais).
@@ -178,13 +188,13 @@ cursou(vitor, etica).
 cursou(vitor, modelagem_fenomenos_fisicos).
 cursou(vitor, ex_criando_solucoes_comp).
 cursou(vitor, poo).
-cursou(vitor, seguranca_da_infomacao).
+cursou(vitor, seguranca_da_informacao).
 cursou(vitor, performance_sistema_ciber).
 %4
 cursou(vitor, teologia_sociedade).
 cursou(vitor, resolucao_problemas_estruturado_computacao).
 cursou(vitor, big_data).
-cursou(vitor, progamacao_logica_funcional).
+cursou(vitor, programacao_logica_funcional).
 cursou(vitor, sistemas_operacionais_ciber).
 cursou(vitor, redes_convergentes).
 cursou(vitor, modelagem_sistemas_computacionais).

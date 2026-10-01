@@ -1,12 +1,17 @@
+:- encoding(utf8).
+
 % Camada 2
-% Aluno existe e se possui algum histórico
+% Aluno existe (esta cadastrado em aluno/1), mesmo sem historico.
+% Sem cut: com Aluno livre, enumera todos os alunos por backtracking.
 aluno_valido(Aluno) :-
-    cursou(Aluno, _),
-    !.
+    aluno(Aluno).
 
 % Todos os pré-requisitos diretos já foram cursados
+% A disciplina precisa existir: sem essa checagem, o forall/2 seria
+% verdadeiro "por vacuidade" para uma disciplina inexistente.
 prerequisitos_ok(Aluno, Disciplina) :-
     aluno_valido(Aluno),
+    disciplina(Disciplina, _, _, _),
     forall(
         prerequisito(Disciplina, P),
         cursou(Aluno, P)
